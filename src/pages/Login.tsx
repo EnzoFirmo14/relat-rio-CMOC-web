@@ -51,7 +51,7 @@ export default function Login() {
             role: 'Supervisor de Mina'
           }));
         } else {
-          setErrorMsg('Erro de conexão ou credenciais inválidas.');
+          setErrorMsg(`Falha no login: ${e.message}`);
         }
       }
     } finally {

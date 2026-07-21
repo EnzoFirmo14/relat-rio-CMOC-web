@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
 import { motion } from 'framer-motion';
 import { User, Lock, Briefcase, KeyRound, Sun, Moon } from 'lucide-react';
+import { registerWithEmail, logoutUser } from '../services/authService';
 
 const registerSchema = zod.object({
   name: zod.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
@@ -39,13 +40,16 @@ export default function Register() {
     setLoading(true);
     setErrorMsg('');
     try {
+      const emailToUse = data.username.includes('@') ? data.username : `${data.username}@cmoc.com`;
+      await registerWithEmail(emailToUse, data.password);
+      await logoutUser(); // Desloga automaticamente para forçar o login na tela seguinte
+
       // Save supervisor info to Firestore supervisors collection
       await addDoc(collection(db, 'supervisors'), {
         name: data.name,
         role: data.role,
         registration: data.registration,
         username: data.username.toLowerCase().trim(),
-        password: data.password, // For simulation purposes. In production this should be hashed or handled by Firebase Auth.
         createdAt: serverTimestamp()
       });
 
@@ -53,7 +57,11 @@ export default function Register() {
       navigate('/login');
     } catch (e: any) {
       console.error('Failed to register user: ', e);
-      setErrorMsg(`Erro ao cadastrar usuário: ${e.message}`);
+      if (e.code === 'auth/email-already-in-use') {
+        setErrorMsg('Este usuário já está cadastrado.');
+      } else {
+        setErrorMsg(`Erro ao cadastrar usuário: ${e.message}`);
+      }
     } finally {
       setLoading(false);
     }
