@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+:root {
+  /* CMOC Brand Colors */
+  --cmoc-blue: #23005B;
+  --cmoc-purple: #5C3FA3;
+  --cmoc-green: #74BE45;
+
+  /* Theme Tokens - Light Mode */
+  --background: #F8FAFC; /* Slate 50 */
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --border: #E2E8F0; /* Slate 200 */
+  
+  --primary: var(--cmoc-blue);
+  --primary-hover: var(--cmoc-purple);
+  --success: var(--cmoc-green);
+  --warning: #F59E0B; /* Amber 500 */
+  --error: #EF4444; /* Red 500 */
+  --info: #3B82F6; /* Blue 500 */
+  
+  --text-primary: #0F172A; /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-tertiary: #94A3B8; /* Slate 400 */
+  --text-placeholder: #94A3B8;
+  --text-title: var(--cmoc-blue); /* Title color for light mode */
+  
+  /* Shared values */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+.dark {
+  /* Theme Tokens - Dark Mode */
+  --background: #0B1120;
+  --surface: #111827; /* Gray 900 */
+  --card: #111827;
+  --border: #1F2937; /* Gray 800 */
+  
+  --primary: var(--cmoc-purple); /* Brand Roxo CMOC for contrast */
+  --primary-hover: #7353C4;
+  --success: var(--cmoc-green);
+  
+  --text-primary: #F8FAFC; /* Slate 50 */
+  --text-secondary: #94A3B8; /* Slate 400 */
+  --text-tertiary: #475569; /* Slate 600 */
+  --text-placeholder: #475569;
+  --text-title: #F8FAFC; /* Title color for dark mode (Slate 50) */
+}
+
+@theme {
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
+
+  /* Brand colors (legacy support for existing classes if any remain temporarily) */
+  --color-cmoc-blue: var(--cmoc-blue);
+  --color-cmoc-purple: var(--cmoc-purple);
+  --color-cmoc-green: var(--cmoc-green);
+  --color-cmoc-white: #FFFFFF;
+  --color-cmoc-gray-light: #F5F7FA;
+  --color-cmoc-gray-dark: #1F2937;
+  --color-cmoc-dark-bg: #0B1120;
+  --color-cmoc-dark-card: #111827;
+  --color-cmoc-dark-menu: #1E293B;
+
+  /* Semantic Tokens for Design System */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-text-title: var(--text-title);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    /* Smooth transitions for theme switching */
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+
+  /* Style headings to use the theme title color variable automatically */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-title);
+  }
+
+  /* Definitively style text-like inputs, select, and textarea to guarantee high contrast and visible cursor */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="range"]):not([type="image"]),
+  select,
+  textarea {
+    color: var(--text-primary) !important;
+    background-color: var(--background) !important;
+    border-color: var(--border) !important;
+    caret-color: var(--cmoc-purple) !important; /* Visible cursor matching theme */
+  }
+
+  /* Legible placeholders in both modes */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-placeholder) !important;
+    opacity: 1 !important;
+  }
+
+  /* Modern focus state */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--cmoc-purple) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(92, 63, 163, 0.35) !important;
+  }
+
+  /* Select options readability in dark mode */
+  select option {
+    background-color: var(--surface) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Labels legíveis em ambos os modos */
+  form label,
+  label.text-xs,
+  .form-label {
+    color: var(--text-primary) !important;
+    opacity: 0.85 !important;
+  }
+}
+
+@layer components {
+  /* Typography Scale */
+  .text-display {
+    @apply font-outfit text-5xl md:text-7xl font-extrabold tracking-tight leading-tight;
+  }
+  .text-h1 {
+    @apply font-outfit text-4xl md:text-5xl font-bold tracking-tight leading-tight;
+  }
+  .text-h2 {
+    @apply font-outfit text-3xl md:text-4xl font-bold tracking-tight leading-snug;
+  }
+  .text-h3 {
+    @apply font-outfit text-2xl md:text-3xl font-semibold tracking-tight;
+  }
+  .text-h4 {
+    @apply font-outfit text-xl md:text-2xl font-semibold tracking-tight;
+  }
+  .text-body {
+    @apply font-sans text-base leading-relaxed;
+  }
+  .text-small {
+    @apply font-sans text-sm leading-normal;
+  }
+  .text-caption {
+    @apply font-sans text-xs font-medium uppercase tracking-wider text-text-secondary;
+  }
+}
+
+/* Fix Autofill styling in Chrome/Safari/Edge */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px var(--background) !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover, 
+.dark input:-webkit-autofill:focus, 
+.dark input:-webkit-autofill:active {
+  box-shadow: inset 0 0 20px 20px var(--background) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+/* Custom Glassmorphism styles (Refined) */
+.glass {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark .glass {
+  background: var(--card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151; /* Gray 700 */
+}
