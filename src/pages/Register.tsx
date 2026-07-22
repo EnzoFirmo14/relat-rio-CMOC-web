@@ -1,5 +1,5 @@
 import { useState } from'react';
-import { db, collection, addDoc, serverTimestamp } from'../services/firebase';
+import { db, serverTimestamp } from '../services/firebase';
 import { useNavigate, Link } from'react-router-dom';
 import { useForm } from'react-hook-form';
 import { useDispatch, useSelector } from'react-redux';
