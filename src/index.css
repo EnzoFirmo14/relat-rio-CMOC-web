@@ -9,20 +9,30 @@
   /* Theme Tokens - Light Mode */
   --background: #F8FAFC; /* Slate 50 */
   --surface: #FFFFFF;
+  --surface-hover: #F1F5F9; /* Slate 100 */
   --card: #FFFFFF;
   --border: #E2E8F0; /* Slate 200 */
   
   --primary: var(--cmoc-blue);
   --primary-hover: var(--cmoc-purple);
-  --success: var(--cmoc-green);
-  --warning: #F59E0B; /* Amber 500 */
-  --error: #EF4444; /* Red 500 */
-  --info: #3B82F6; /* Blue 500 */
+  --primary-foreground: #FFFFFF;
   
-  --text-primary: #0F172A; /* Slate 900 */
+  --success: var(--cmoc-green);
+  --success-foreground: #FFFFFF;
+  
+  --warning: #F59E0B; /* Amber 500 */
+  --warning-foreground: #FFFFFF;
+  
+  --error: #EF4444; /* Red 500 */
+  --error-foreground: #FFFFFF;
+  
+  --info: #3B82F6; /* Blue 500 */
+  --info-foreground: #FFFFFF;
+  
+  --text-primary: #0F172A; /* Slate 900 - High Contrast */
   --text-secondary: #475569; /* Slate 600 */
-  --text-tertiary: #94A3B8; /* Slate 400 */
-  --text-placeholder: #94A3B8;
+  --text-tertiary: #64748B; /* Slate 500 */
+  --text-placeholder: #94A3B8; /* Slate 400 */
   --text-title: var(--cmoc-blue); /* Title color for light mode */
   
   /* Shared values */
@@ -36,19 +46,32 @@
 .dark {
   /* Theme Tokens - Dark Mode */
   --background: #0B1120;
-  --surface: #111827; /* Gray 900 */
-  --card: #111827;
-  --border: #1F2937; /* Gray 800 */
+  --surface: #1E293B; /* Slate 800 - Slightly lighter than background for distinction */
+  --surface-hover: #334155; /* Slate 700 */
+  --card: #1E293B;
+  --border: #334155; /* Slate 700 */
   
   --primary: var(--cmoc-purple); /* Brand Roxo CMOC for contrast */
   --primary-hover: #7353C4;
-  --success: var(--cmoc-green);
+  --primary-foreground: #FFFFFF;
   
-  --text-primary: #F8FAFC; /* Slate 50 */
-  --text-secondary: #94A3B8; /* Slate 400 */
-  --text-tertiary: #475569; /* Slate 600 */
-  --text-placeholder: #475569;
-  --text-title: #F8FAFC; /* Title color for dark mode (Slate 50) */
+  --success: var(--cmoc-green);
+  --success-foreground: #000000;
+  
+  --warning: #FBBF24; /* Amber 400 */
+  --warning-foreground: #000000;
+  
+  --error: #F87171; /* Red 400 */
+  --error-foreground: #000000;
+  
+  --info: #60A5FA; /* Blue 400 */
+  --info-foreground: #000000;
+  
+  --text-primary: #F8FAFC; /* Slate 50 - High Contrast */
+  --text-secondary: #CBD5E1; /* Slate 300 */
+  --text-tertiary: #94A3B8; /* Slate 400 */
+  --text-placeholder: #64748B; /* Slate 500 */
+  --text-title: #F8FAFC; /* Title color for dark mode */
 }
 
 @theme {
@@ -70,15 +93,25 @@
   /* Semantic Tokens for Design System */
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
   --color-card: var(--card);
   --color-border: var(--border);
   
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  
   --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  
   --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  
   --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
