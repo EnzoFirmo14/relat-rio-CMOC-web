@@ -40,21 +40,27 @@ export default function Register() {
  setLoading(true);
  setErrorMsg('');
  try {
- const emailToUse = data.username.includes('@') ? data.username : `${data.username}@cmoc.com`;
- await registerWithEmail(emailToUse, data.password);
- await logoutUser(); // Desloga automaticamente para forçar o login na tela seguinte
+    const emailToUse = data.username.includes('@') ? data.username : `${data.username}@cmoc.com`;
+    const user = await registerWithEmail(emailToUse, data.password);
+    
+    // Save supervisor info to Firestore 'usuarios' collection matching the profile architecture
+    const { setDoc, doc } = await import('firebase/firestore');
+    await setDoc(doc(db, 'usuarios', user.uid), {
+      uid: user.uid,
+      email: user.email,
+      name: data.name,
+      role: data.role,
+      registration: data.registration,
+      username: data.username.toLowerCase().trim(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      avatarColor: '#' + Math.floor(Math.random()*16777215).toString(16) // Random default color
+    });
 
- // Save supervisor info to Firestore supervisors collection
- await addDoc(collection(db,'supervisors'), {
- name: data.name,
- role: data.role,
- registration: data.registration,
- username: data.username.toLowerCase().trim(),
- createdAt: serverTimestamp()
- });
+    await logoutUser(); // Desloga automaticamente para forçar o login na tela seguinte
 
- alert('Usuário cadastrado com sucesso!');
- navigate('/login');
+    alert('Usuário cadastrado com sucesso!');
+    navigate('/login');
  } catch (e: any) {
  console.error('Failed to register user:', e);
  if (e.code ==='auth/email-already-in-use') {

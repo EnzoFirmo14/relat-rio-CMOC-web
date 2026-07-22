@@ -67,40 +67,53 @@ function App() {
  let unsubscribeProfile: (() => void) | undefined;
 
  const unsubscribe = onAuthStateChanged(auth, async (user) => {
- if (user) {
- const { getOrCreateUserProfile, subscribeToUserProfile } = await import('./services/profileService');
- 
- // Ensure doc exists
- await getOrCreateUserProfile(user.uid, user.email);
+    if (user) {
+      // Dispatch minimal user info to unlock the 'loading' screen immediately
+      dispatch(setFirebaseUser({
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || 'Carregando...',
+        role: '...',
+        avatarColor: '#3b82f6',
+      }));
 
- // Subscribe to real-time updates
- unsubscribeProfile = subscribeToUserProfile(user.uid, (profile) => {
- if (profile) {
- dispatch(setFirebaseUser({
- uid: profile.uid,
- email: profile.email,
- name: profile.name,
- role: profile.role,
- photoURL: profile.photoURL,
- avatarColor: profile.avatarColor,
- }));
- }
- });
+      try {
+        const { getOrCreateUserProfile, subscribeToUserProfile } = await import('./services/profileService');
+        
+        // Ensure doc exists
+        await getOrCreateUserProfile(user.uid, user.email);
 
- } else {
- if (unsubscribeProfile) {
- unsubscribeProfile();
- }
- dispatch(setFirebaseUser(null));
- }
- });
+        // Subscribe to real-time updates
+        unsubscribeProfile = subscribeToUserProfile(user.uid, (profile) => {
+          if (profile) {
+            dispatch(setFirebaseUser({
+              uid: profile.uid,
+              email: profile.email,
+              name: profile.name,
+              role: profile.role,
+              photoURL: profile.photoURL,
+              avatarColor: profile.avatarColor,
+            }));
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // We still have the minimal user state so the app doesn't break
+      }
+    } else {
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
+      dispatch(setFirebaseUser(null));
+    }
+  });
 
- return () => {
- unsubscribe();
- if (unsubscribeProfile) {
- unsubscribeProfile();
- }
- };
+  return () => {
+    unsubscribe();
+    if (unsubscribeProfile) {
+      unsubscribeProfile();
+    }
+  };
  }, [dispatch]);
 
  return (
