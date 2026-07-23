@@ -14,8 +14,6 @@ import {
  LogOut, 
  ChevronLeft, 
  ChevronRight, 
- Wifi, 
- WifiOff,
  Database
 } from'lucide-react';
 
@@ -59,22 +57,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  const mockEnabled = useSelector((state: RootState) => state.ui.mockEnabled);
  
  const [time, setTime] = useState(new Date());
- const [isOnline, setIsOnline] = useState(navigator.onLine);
  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
  useEffect(() => {
  const timer = setInterval(() => setTime(new Date()), 1000);
- 
- const handleOnline = () => setIsOnline(true);
- const handleOffline = () => setIsOnline(false);
- 
- window.addEventListener('online', handleOnline);
- window.addEventListener('offline', handleOffline);
 
  return () => {
  clearInterval(timer);
- window.removeEventListener('online', handleOnline);
- window.removeEventListener('offline', handleOffline);
  };
  }, []);
 
@@ -157,15 +146,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  <Menu size={20} />
  </button>
  
- <div className="hidden sm:flex items-center gap-2">
- <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
- isOnline 
- ?'bg-success/10 text-success border border-success/20' 
- :'bg-error/10 text-error border border-error/20'
- }`}>
- {isOnline ? <Wifi size={12} className="animate-pulse"/> : <WifiOff size={12} />}
- {isOnline ?'Online' :'Offline'}
- </span>
+ <div className="hidden sm:flex items-center gap-3">
  <span className="text-sm font-medium text-text-tertiary dark:text-text-tertiary">
  {time.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'short' })}
  </span>

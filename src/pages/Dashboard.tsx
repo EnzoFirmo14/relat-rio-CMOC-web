@@ -22,7 +22,7 @@ export default function Dashboard() {
  useEffect(() => {
  const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
  const unsubscribe = onSnapshot(q, (snapshot) => {
- const docs = snapshot.docs.map(doc => normalizeReport({ uuid: doc.id, ...doc.data() }, mockEnabled));
+ const docs = snapshot.docs.map(doc => normalizeReport({ uuid: doc.id, ...doc.data() }));
  setReports(docs);
  setLoading(false);
  }, (error) => {
@@ -107,22 +107,22 @@ export default function Dashboard() {
  areaData.push({ name:'Nível 150', value: 4 });
  }
 
- // Graph 3: Relatórios por Supervisor
- const supMap: { [key: string]: number } = {};
- reports.forEach(r => {
- const sup = r.supervisorName ||'Sem Supervisor';
- supMap[sup] = (supMap[sup] || 0) + 1;
- });
- const supervisorData = Object.keys(supMap).map(name => ({
- name,
- Relatorios: supMap[name]
- })).sort((a, b) => b.Relatorios - a.Relatorios).slice(0, 4);
+  // Graph 3: Relatórios por Equipe
+  const teamMap: { [key: string]: number } = {};
+  reports.forEach(r => {
+    const team = r.team || 'Sem Equipe';
+    teamMap[team] = (teamMap[team] || 0) + 1;
+  });
+  const teamData = Object.keys(teamMap).map(name => ({
+    name,
+    Relatorios: teamMap[name]
+  })).sort((a, b) => b.Relatorios - a.Relatorios).slice(0, 4);
 
- if (supervisorData.length === 0 && mockEnabled) {
- supervisorData.push({ name:'Pedro S.', Relatorios: 12 });
- supervisorData.push({ name:'Marcos R.', Relatorios: 8 });
- supervisorData.push({ name:'Carla F.', Relatorios: 15 });
- }
+  if (teamData.length === 0 && mockEnabled) {
+    teamData.push({ name: 'Turma Alfa', Relatorios: 12 });
+    teamData.push({ name: 'Turma Beta', Relatorios: 8 });
+    teamData.push({ name: 'Turma Gama', Relatorios: 15 });
+  }
 
  // Graph 4: Equipamentos por Status
  const equipmentStatusData = [
@@ -331,12 +331,12 @@ export default function Dashboard() {
  </div>
  </div>
 
- {/* Relatórios Fechados por Supervisor */}
+ {/* Relatórios por Equipe */}
  <div className="glass rounded-2xl p-5 border border-border/50 dark:border-border/80 shadow-md">
- <h3 className="text-xs font-bold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary mb-4 font-outfit">Relatórios por Supervisor</h3>
+ <h3 className="text-xs font-bold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary mb-4 font-outfit">Relatórios por Equipe</h3>
  <div className="h-64">
  <ResponsiveContainer width="100%"height="100%">
- <LineChart data={supervisorData}>
+ <LineChart data={teamData}>
  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
  <XAxis dataKey="name"stroke="var(--text-tertiary)"fontSize={11} fontWeight={600} />
  <YAxis stroke="var(--text-tertiary)"fontSize={11} fontWeight={600} />

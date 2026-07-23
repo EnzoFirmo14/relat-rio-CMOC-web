@@ -7,8 +7,8 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { 
  Search, Plus, Eye, Edit2, Trash2, MapPin, ClipboardList,
- Download, X, CheckCircle2, FileText, AlertTriangle
-} from'lucide-react';
+ Download, X, FileText
+} from 'lucide-react';
 import { motion, AnimatePresence } from'framer-motion';
 import * as XLSX from'xlsx';
 
@@ -22,8 +22,6 @@ export default function ReportsList() {
  // Search & Filter state
  const [searchTerm, setSearchTerm] = useState('');
  const [selectedShift, setSelectedShift] = useState('');
- const [selectedStatus, setSelectedStatus] = useState('');
- const [selectedPriority, setSelectedPriority] = useState('');
  const [selectedArea, setSelectedArea] = useState('');
  const [selectedPeriod, setSelectedPeriod] = useState('all'); // all, today, yesterday, 7, 30
  
@@ -39,7 +37,7 @@ export default function ReportsList() {
  useEffect(() => {
  const q = query(collection(db,'reports'), orderBy('createdAt','desc'));
  const unsubscribe = onSnapshot(q, (snapshot) => {
- const docs = snapshot.docs.map(d => normalizeReport({ uuid: d.id, ...d.data() }, mockEnabled));
+ const docs = snapshot.docs.map(d => normalizeReport({ uuid: d.id, ...d.data() }));
  setReports(docs);
  setLoading(false);
  }, (error) => {
@@ -62,7 +60,6 @@ export default function ReportsList() {
  (r.shift?.toLowerCase().includes(term)) ||
  (r.team?.toLowerCase().includes(term)) ||
  (r.equipment?.toLowerCase().includes(term)) ||
- (r.supervisorName?.toLowerCase().includes(term)) ||
  (r.executors?.some(e => e.name.toLowerCase().includes(term) || e.registration.toLowerCase().includes(term))) ||
  (r.workOrders?.some(o => o.number.toLowerCase().includes(term) || o.activities.toLowerCase().includes(term)))
  );
@@ -70,8 +67,6 @@ export default function ReportsList() {
 
  // Quick filters
  if (selectedShift) result = result.filter(r => r.shift === selectedShift);
- if (selectedStatus) result = result.filter(r => r.status === selectedStatus);
- if (selectedPriority) result = result.filter(r => r.priority === selectedPriority);
  if (selectedArea) result = result.filter(r => r.mineLocation?.toLowerCase().includes(selectedArea.toLowerCase()));
 
  // Period filtering
@@ -120,7 +115,7 @@ export default function ReportsList() {
 
  setFilteredReports(result);
  setCurrentPage(1); // reset to page 1 on filter
- }, [reports, searchTerm, selectedShift, selectedStatus, selectedPriority, selectedArea, selectedPeriod, sortField, sortOrder]);
+ }, [reports, searchTerm, selectedShift, selectedArea, selectedPeriod, sortField, sortOrder]);
 
  // Handle Sort Toggle
  const handleSort = (field: keyof NormalizedReport) => {
@@ -162,10 +157,8 @@ export default function ReportsList() {
 'Turno': r.shift ||'',
 'Equipe': r.team ||'',
 'Equipamento': r.equipment ||'',
-'Supervisor': r.supervisorName ||'',
-'Atividade': r.activityType ||'',
-'Prioridade': r.priority ||'Baixa',
-'Status': r.status ==='synced' ?'Sincronizado' : r.status ==='pending' ?'Pendente' :'Rascunho'
+'Nivel Combustivel': `${r.fuelLevel}%`,
+'Materiais Disp.': r.availableMaterials ||''
  };
  });
 
@@ -183,41 +176,18 @@ export default function ReportsList() {
  const handleClearFilters = () => {
  setSearchTerm('');
  setSelectedShift('');
- setSelectedStatus('');
- setSelectedPriority('');
  setSelectedArea('');
  setSelectedPeriod('all');
  };
 
- const getStatusBadge = (status?: string) => {
- switch (status) {
- case'synced':
- return <span className="px-2.5 py-1 bg-success/10 text-success text-xs font-bold rounded-full border border-success/20">Sincronizado</span>;
- case'pending':
- return <span className="px-2.5 py-1 bg-yellow-100 dark:bg-yellow-950/20 text-warning text-xs font-bold rounded-full border border-warning/20">Pendente</span>;
- case'draft':
- return <span className="px-2.5 py-1 bg-surface-hover dark:bg-surface text-text-tertiary text-xs font-bold rounded-full border border-border dark:border-border">Rascunho</span>;
- default:
- return <span className="px-2.5 py-1 bg-error/10 text-error text-xs font-bold rounded-full border border-error/20">Erro</span>;
- }
- };
-
- const getPriorityBadge = (p?: string) => {
- if (p ==='Alta' || p ==='Critica') return <span className="text-error text-xs font-bold">🔴 Alta</span>;
- if (p ==='Media') return <span className="text-warning text-xs font-bold">🟡 Média</span>;
- return <span className="text-success text-xs font-bold">🟢 Baixa</span>;
- };
-
  // KPI computation
  const totalCount = reports.length;
- const syncedCount = reports.filter(r => r.status ==='synced').length;
- const pendingCount = reports.filter(r => r.status ==='pending').length;
- const draftCount = reports.filter(r => r.status ==='draft').length;
+ const totalOSCount = reports.reduce((acc, curr) => acc + (curr.workOrders?.length || 0), 0);
 
  return (
  <div className="space-y-6 animate-in fade-in duration-200 relative">
  {/* Mini KPIs */}
- <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="glass p-4 rounded-2xl flex items-center gap-4 hover:shadow-lg transition-shadow">
  <div className="p-3 bg-primary/10 text-primary rounded-xl"><FileText size={20} /></div>
  <div>
@@ -226,24 +196,10 @@ export default function ReportsList() {
  </div>
  </div>
  <div className="glass p-4 rounded-2xl flex items-center gap-4 hover:shadow-lg transition-shadow">
- <div className="p-3 bg-success/10 text-success rounded-xl"><CheckCircle2 size={20} /></div>
+ <div className="p-3 bg-primary/10 text-primary rounded-xl"><ClipboardList size={20} /></div>
  <div>
- <div className="text-2xl font-bold text-text-primary leading-none">{syncedCount}</div>
- <div className="text-xs text-text-secondary font-semibold mt-1">Sincronizados</div>
- </div>
- </div>
- <div className="glass p-4 rounded-2xl flex items-center gap-4 hover:shadow-lg transition-shadow">
- <div className="p-3 bg-warning/10 text-warning rounded-xl"><AlertTriangle size={20} /></div>
- <div>
- <div className="text-2xl font-bold text-text-primary leading-none">{pendingCount}</div>
- <div className="text-xs text-text-secondary font-semibold mt-1">Pendentes</div>
- </div>
- </div>
- <div className="glass p-4 rounded-2xl flex items-center gap-4 hover:shadow-lg transition-shadow">
- <div className="p-3 bg-background0/10 text-text-tertiary rounded-xl"><Edit2 size={20} /></div>
- <div>
- <div className="text-2xl font-bold text-text-primary leading-none">{draftCount}</div>
- <div className="text-xs text-text-secondary font-semibold mt-1">Rascunhos</div>
+ <div className="text-2xl font-bold text-text-primary leading-none">{totalOSCount}</div>
+ <div className="text-xs text-text-secondary font-semibold mt-1">Total OSs Associadas</div>
  </div>
  </div>
  </div>
@@ -314,7 +270,7 @@ export default function ReportsList() {
  {p.label}
  </button>
  ))}
- {(searchTerm || selectedShift || selectedStatus || selectedPriority || selectedArea || selectedPeriod !=='all') && (
+ {(searchTerm || selectedShift || selectedArea || selectedPeriod !=='all') && (
  <button
  onClick={handleClearFilters}
  className="px-4 py-2 text-xs font-bold rounded-xl transition-all bg-red-100 text-error hover:bg-red-200 dark:bg-red-950/20"
@@ -327,7 +283,7 @@ export default function ReportsList() {
  </div>
 
  {/* Dropdowns filters */}
- <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-slate-100 dark:border-border/80">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-border/80">
  <select 
  value={selectedShift} 
  onChange={(e) => setSelectedShift(e.target.value)}
@@ -337,28 +293,6 @@ export default function ReportsList() {
  <option value="A">Turno A</option>
  <option value="B">Turno B</option>
  <option value="C">Turno C</option>
- </select>
- 
- <select 
- value={selectedStatus} 
- onChange={(e) => setSelectedStatus(e.target.value)}
- className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
- >
- <option value="">Todos os Status</option>
- <option value="synced">Sincronizado</option>
- <option value="pending">Pendente</option>
- <option value="draft">Rascunho</option>
- </select>
-
- <select 
- value={selectedPriority} 
- onChange={(e) => setSelectedPriority(e.target.value)}
- className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
- >
- <option value="">Todas as Prioridades</option>
- <option value="Alta">Alta</option>
- <option value="Media">Média</option>
- <option value="Baixa">Baixa</option>
  </select>
 
  <input 
@@ -400,10 +334,9 @@ export default function ReportsList() {
  Mina / Local {sortField ==='mineLocation' && (sortOrder ==='asc' ?'▲' :'▼')}
  </th>
  <th className="px-6 py-4">Turno</th>
+ <th className="px-6 py-4">Equipe</th>
  <th className="px-6 py-4">Equipamento</th>
  <th className="px-6 py-4">OSs Associadas</th>
- <th className="px-6 py-4">Prioridade</th>
- <th className="px-6 py-4">Status</th>
  <th className="px-6 py-4 text-right">Ações</th>
  </tr>
  </thead>
@@ -436,6 +369,7 @@ export default function ReportsList() {
  Turno {report.shift ||'A'}
  </span>
  </td>
+ <td className="px-6 py-4 text-text-tertiary dark:text-text-tertiary">{report.team ||'—'}</td>
  <td className="px-6 py-4 text-text-tertiary dark:text-text-tertiary">{report.equipment ||'—'}</td>
  <td className="px-6 py-4">
  <div className="flex gap-1 flex-wrap">
@@ -450,8 +384,6 @@ export default function ReportsList() {
  )}
  </div>
  </td>
- <td className="px-6 py-4">{getPriorityBadge(report.priority ||'Baixa')}</td>
- <td className="px-6 py-4">{getStatusBadge(report.status)}</td>
  <td className="px-6 py-4 text-right">
  <div className="flex justify-end gap-2">
  <button 
