@@ -1,25 +1,28 @@
-import { useEffect, useState } from'react';
-import { db, collection, onSnapshot, query, orderBy } from'../services/firebase';
-import { normalizeReport } from'../services/dataNormalization';
-import type { NormalizedReport } from'../services/dataNormalization';
+import { useEffect, useState } from 'react';
+import { db, collection, onSnapshot, query, orderBy } from '../services/firebase';
+import { normalizeReport } from '../services/dataNormalization';
+import type { NormalizedReport } from '../services/dataNormalization';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import { 
  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
-} from'recharts';
+} from 'recharts';
 import { 
  FileText, AlertOctagon, Activity, Users, Truck, Clock, CheckCircle2, AlertTriangle
-} from'lucide-react';
-import { motion } from'framer-motion';
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Dashboard() {
+ const mockEnabled = useSelector((state: RootState) => state.ui.mockEnabled);
  const [reports, setReports] = useState<NormalizedReport[]>([]);
  const [loading, setLoading] = useState(true);
- const [activeTab, setActiveTab] = useState<'geral' |'frota' |'seguranca'>('geral');
+ const [activeTab, setActiveTab] = useState<'geral' | 'frota' | 'seguranca'>('geral');
 
  useEffect(() => {
- const q = query(collection(db,'reports'), orderBy('createdAt','desc'));
+ const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
  const unsubscribe = onSnapshot(q, (snapshot) => {
- const docs = snapshot.docs.map(doc => normalizeReport({ uuid: doc.id, ...doc.data() }));
+ const docs = snapshot.docs.map(doc => normalizeReport({ uuid: doc.id, ...doc.data() }, mockEnabled));
  setReports(docs);
  setLoading(false);
  }, (error) => {
@@ -28,7 +31,7 @@ export default function Dashboard() {
  });
 
  return () => unsubscribe();
- }, []);
+ }, [mockEnabled]);
 
  // Compute metrics
  const todayReportsCount = reports.filter(r => {
@@ -38,26 +41,26 @@ export default function Dashboard() {
  }).length;
 
  const totalReports = reports.length;
- const activeCollaborators = new Set(reports.flatMap(r => r.executors || []).map(e => e.name || e.registration)).size || 14;
- const activeEquipments = new Set(reports.map(r => r.equipment).filter(Boolean)).size || 6;
- const completedOrders = reports.flatMap(r => r.workOrders || []).length || 8;
+ const activeCollaborators = new Set(reports.flatMap(r => r.executors || []).map(e => e.name || e.registration)).size || (mockEnabled ? 14 : 0);
+ const activeEquipments = new Set(reports.map(r => r.equipment).filter(Boolean)).size || (mockEnabled ? 6 : 0);
+ const completedOrders = reports.flatMap(r => r.workOrders || []).length || (mockEnabled ? 8 : 0);
 
  // Full set of KPIs
  const allKpis = [
  { id:'relatorios_dia', tabs: ['geral'], label:'Relatórios do Dia', value: todayReportsCount || totalReports, icon: <FileText size={20} />, color:'blue', valueColor:'text-primary', badge:'Meta: 10', badgeColor:'bg-primary/10 text-primary' },
  { id:'ordens_concluidas', tabs: ['geral'], label:'Ordens Concluídas', value: completedOrders, icon: <CheckCircle2 size={20} />, color:'green', valueColor:'text-success', badge:'100% Meta', badgeColor:'bg-success/10 text-success' },
- { id:'ordens_aberto', tabs: ['geral'], label:'Ordens em Aberto', value: 3, icon: <AlertTriangle size={20} />, color:'yellow', valueColor:'text-warning', badge:'-15% vs ontem', badgeColor:'bg-warning/10 text-warning' },
+ { id:'ordens_aberto', tabs: ['geral'], label:'Ordens em Aberto', value: mockEnabled ? 3 : 0, icon: <AlertTriangle size={20} />, color:'yellow', valueColor:'text-warning', badge: mockEnabled ? '-15% vs ontem' : '0% Meta', badgeColor:'bg-warning/10 text-warning' },
  { id:'colaboradores_ativos', tabs: ['geral','seguranca'], label:'Colaboradores Ativos', value: activeCollaborators, icon: <Users size={20} />, color:'teal', valueColor:'text-info', badge:'100% Escala', badgeColor:'bg-info/10 text-info' },
  
- { id:'equipamentos_ativos', tabs: ['frota'], label:'Plataformas Ativas', value: activeEquipments, icon: <Truck size={20} />, color:'blue', valueColor:'text-primary', badge:'Eficiência: 95%', badgeColor:'bg-primary/10 text-primary' },
- { id:'equipamentos_parados', tabs: ['frota'], label:'Plataformas Paradas', value: 2, icon: <AlertOctagon size={20} />, color:'red', valueColor:'text-error', badge:'Manutenção', badgeColor:'bg-error/10 text-error' },
- { id:'disponibilidade_op', tabs: ['frota'], label:'Disponibilidade Op.', value:'94.2%', icon: <Activity size={20} />, color:'purple', valueColor:'text-primary', badge:'Meta: 92%', badgeColor:'bg-primary/10 text-primary' },
- { id:'tempo_medio', tabs: ['geral','frota'], label:'Tempo Médio Execução', value:'1h 45m', icon: <Clock size={20} />, color:'blue', valueColor:'text-primary', badge:'Dentro do SLA', badgeColor:'bg-surface-hover dark:bg-surface text-text-tertiary' },
+ { id:'equipamentos_ativos', tabs: ['frota'], label:'Plataformas Ativas', value: activeEquipments, icon: <Truck size={20} />, color:'blue', valueColor:'text-primary', badge: mockEnabled ? 'Eficiência: 95%' : 'Real', badgeColor:'bg-primary/10 text-primary' },
+ { id:'equipamentos_parados', tabs: ['frota'], label:'Plataformas Paradas', value: mockEnabled ? 2 : 0, icon: <AlertOctagon size={20} />, color:'red', valueColor:'text-error', badge:'Manutenção', badgeColor:'bg-error/10 text-error' },
+ { id:'disponibilidade_op', tabs: ['frota'], label:'Disponibilidade Op.', value: mockEnabled ? '94.2%' : '0%', icon: <Activity size={20} />, color:'purple', valueColor:'text-primary', badge:'Meta: 92%', badgeColor:'bg-primary/10 text-primary' },
+ { id:'tempo_medio', tabs: ['geral','frota'], label:'Tempo Médio Execução', value: mockEnabled ? '1h 45m' : '-', icon: <Clock size={20} />, color:'blue', valueColor:'text-primary', badge: 'SLA', badgeColor:'bg-surface-hover dark:bg-surface text-text-tertiary' },
  
  { id:'ocorrencias_criticas', tabs: ['seguranca'], label:'Ocorrências Críticas', value: 0, icon: <AlertOctagon size={20} />, color:'red', valueColor:'text-error', badge:'Operação Segura', badgeColor:'bg-success/10 text-success' },
- { id:'pendencias', tabs: ['seguranca'], label:'Pendências', value: 4, icon: <AlertTriangle size={20} />, color:'yellow', valueColor:'text-warning', badge:'Sob controle', badgeColor:'bg-warning/10 text-warning' },
- { id:'taxa_conclusao', tabs: ['geral','seguranca'], label:'Taxa de Conclusão', value:'88.5%', icon: <Activity size={20} />, color:'green', valueColor:'text-success', badge:'+2.4% vs ontem', badgeColor:'bg-success/10 text-success' },
- { id:'equipes_campo', tabs: ['seguranca'], label:'Equipes em Campo', value: 4, icon: <Users size={20} />, color:'purple', valueColor:'text-primary', badge:'Escala 4T', badgeColor:'bg-primary/10 text-primary' },
+ { id:'pendencias', tabs: ['seguranca'], label:'Pendências', value: mockEnabled ? 4 : 0, icon: <AlertTriangle size={20} />, color:'yellow', valueColor:'text-warning', badge:'Sob controle', badgeColor:'bg-warning/10 text-warning' },
+ { id:'taxa_conclusao', tabs: ['geral','seguranca'], label:'Taxa de Conclusão', value: mockEnabled ? '88.5%' : '0%', icon: <Activity size={20} />, color:'green', valueColor:'text-success', badge: mockEnabled ? '+2.4% vs ontem' : 'Real', badgeColor:'bg-success/10 text-success' },
+ { id:'equipes_campo', tabs: ['seguranca'], label:'Equipes em Campo', value: mockEnabled ? 4 : 0, icon: <Users size={20} />, color:'purple', valueColor:'text-primary', badge:'Escala 4T', badgeColor:'bg-primary/10 text-primary' },
  ];
 
  // Filtered KPIs based on active tab
@@ -98,7 +101,7 @@ export default function Dashboard() {
  value: areaMap[name]
  })).sort((a, b) => b.value - a.value).slice(0, 4);
 
- if (areaData.length === 0) {
+ if (areaData.length === 0 && mockEnabled) {
  areaData.push({ name:'Mina Leste', value: 8 });
  areaData.push({ name:'Mina Oeste', value: 5 });
  areaData.push({ name:'Nível 150', value: 4 });
@@ -115,7 +118,7 @@ export default function Dashboard() {
  Relatorios: supMap[name]
  })).sort((a, b) => b.Relatorios - a.Relatorios).slice(0, 4);
 
- if (supervisorData.length === 0) {
+ if (supervisorData.length === 0 && mockEnabled) {
  supervisorData.push({ name:'Pedro S.', Relatorios: 12 });
  supervisorData.push({ name:'Marcos R.', Relatorios: 8 });
  supervisorData.push({ name:'Carla F.', Relatorios: 15 });
@@ -123,9 +126,9 @@ export default function Dashboard() {
 
  // Graph 4: Equipamentos por Status
  const equipmentStatusData = [
- { name:'Operação', value: activeEquipments || 4 },
- { name:'Manutenção', value: 2 },
- { name:'Standby', value: 1 }
+ { name:'Operação', value: activeEquipments || (mockEnabled ? 4 : 0) },
+ { name:'Manutenção', value: mockEnabled ? 2 : 0 },
+ { name:'Standby', value: mockEnabled ? 1 : 0 }
  ];
 
  // Graph 5: Produtividade Diária (Últimos 5 dias, calculada dinamicamente)
@@ -146,27 +149,32 @@ export default function Dashboard() {
  const efficiency = Math.min(75 + count * 6, 96);
  return {
  day: dayName,
- Produtividade: count > 0 ? efficiency : 75 + Math.floor(Math.random() * 15) // Fallback para manter o visual populado
+ Produtividade: count > 0 ? efficiency : (mockEnabled ? (75 + Math.floor(Math.random() * 15)) : 0) // Fallback para manter o visual populado
  };
  });
 
  // Graph 6: Ocorrências por Categoria
- const occurrenceData = [
+ const occurrenceData = mockEnabled ? [
  { subject:'Segurança', A: 120, B: 110, fullMark: 150 },
  { subject:'Mecânica', A: 98, B: 130, fullMark: 150 },
  { subject:'Elétrica', A: 86, B: 130, fullMark: 150 },
  { subject:'Operacional', A: 99, B: 100, fullMark: 150 },
  { subject:'Clima', A: 85, B: 90, fullMark: 150 }
+ ] : [
+ { subject:'Segurança', A: 0, B: 0, fullMark: 150 },
+ { subject:'Mecânica', A: 0, B: 0, fullMark: 150 },
+ { subject:'Elétrica', A: 0, B: 0, fullMark: 150 },
+ { subject:'Operacional', A: 0, B: 0, fullMark: 150 },
+ { subject:'Clima', A: 0, B: 0, fullMark: 150 }
  ];
 
  // Mock Platform list for the Fleet tab
- const mockEquipmentList = [
+ const mockEquipmentList = mockEnabled ? [
  { code:'PT-01', type:'Plataforma Elevatória', status:'Operação', health: 94, location:'Mina Leste N150' },
  { code:'PT-02', type:'Plataforma Articulada', status:'Operação', health: 88, location:'Frente Norte' },
  { code:'PT-03', type:'Plataforma Tesoura', status:'Manutenção', health: 45, location:'Oficina Central' },
  { code:'PT-04', type:'Cesta Elevatória', status:'Standby', health: 91, location:'Mina Oeste' }
- ];
-
+ ] : [];
 
  return (
  <div className="space-y-6 animate-in fade-in duration-300">

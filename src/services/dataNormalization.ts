@@ -54,7 +54,7 @@ export interface NormalizedReport {
  signature?: { signedBy: string, signedAt: string, dataUrl: string };
 }
 
-export function normalizeReport(raw: any): NormalizedReport {
+export function normalizeReport(raw: any, isMockEnabled = true): NormalizedReport {
  if (!raw) return {} as NormalizedReport;
 
  const executors = (raw.operators || raw.executors || []).map((e: any) => ({
@@ -123,17 +123,17 @@ export function normalizeReport(raw: any): NormalizedReport {
  createdAt: createdAt || null,
  updatedAt: raw.updatedAt || null,
  date: date ||'',
- supervisorName: raw.supervisorName ||'Eng. Pedro Santos',
- responsibleCompany: raw.responsibleCompany ||'CMOC Brasil',
- activityType: raw.activityType ||'Lavra',
- description: raw.observations || raw.description ||'',
- objective: raw.objective ||'',
- materials: raw.materials ||'',
- toolsUsed: raw.toolsUsed ||'',
- priority: raw.priority ||'Baixa',
- riskLevel: raw.riskLevel ||'Baixo',
- workPermit: raw.workPermit ||'',
- weatherCondition: raw.weatherCondition ||'Encoberto',
+ supervisorName: raw.supervisorName || (isMockEnabled ? 'Eng. Pedro Santos' : ''),
+ responsibleCompany: raw.responsibleCompany || (isMockEnabled ? 'CMOC Brasil' : ''),
+ activityType: raw.activityType || (isMockEnabled ? 'Lavra' : ''),
+ description: raw.observations || raw.description || '',
+ objective: raw.objective || '',
+ materials: raw.materials || '',
+ toolsUsed: raw.toolsUsed || '',
+ priority: raw.priority || (isMockEnabled ? 'Baixa' : ''),
+ riskLevel: raw.riskLevel || (isMockEnabled ? 'Baixo' : ''),
+ workPermit: raw.workPermit || '',
+ weatherCondition: raw.weatherCondition || (isMockEnabled ? 'Encoberto' : ''),
  gpsCoordinates: raw.gpsCoordinates ||'',
  observations: raw.observations ||'',
  problemsFound: raw.problemsFound ||'',

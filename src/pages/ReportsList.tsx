@@ -1,8 +1,10 @@
-import { useEffect, useState } from'react';
-import { db, collection, onSnapshot, query, orderBy, deleteDoc, doc } from'../services/firebase';
-import { normalizeReport } from'../services/dataNormalization';
-import type { NormalizedReport } from'../services/dataNormalization';
-import { Link, useNavigate } from'react-router-dom';
+import { useEffect, useState } from 'react';
+import { db, collection, onSnapshot, query, orderBy, deleteDoc, doc } from '../services/firebase';
+import { normalizeReport } from '../services/dataNormalization';
+import type { NormalizedReport } from '../services/dataNormalization';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import { 
  Search, Plus, Eye, Edit2, Trash2, MapPin, ClipboardList,
  Download, X, CheckCircle2, FileText, AlertTriangle
@@ -12,6 +14,7 @@ import * as XLSX from'xlsx';
 
 export default function ReportsList() {
  const navigate = useNavigate();
+ const mockEnabled = useSelector((state: RootState) => state.ui.mockEnabled);
  const [reports, setReports] = useState<NormalizedReport[]>([]);
  const [filteredReports, setFilteredReports] = useState<NormalizedReport[]>([]);
  const [loading, setLoading] = useState(true);
@@ -36,7 +39,7 @@ export default function ReportsList() {
  useEffect(() => {
  const q = query(collection(db,'reports'), orderBy('createdAt','desc'));
  const unsubscribe = onSnapshot(q, (snapshot) => {
- const docs = snapshot.docs.map(d => normalizeReport({ uuid: d.id, ...d.data() }));
+ const docs = snapshot.docs.map(d => normalizeReport({ uuid: d.id, ...d.data() }, mockEnabled));
  setReports(docs);
  setLoading(false);
  }, (error) => {
@@ -45,7 +48,7 @@ export default function ReportsList() {
  });
 
  return () => unsubscribe();
- }, []);
+ }, [mockEnabled]);
 
  // Filter application
  useEffect(() => {

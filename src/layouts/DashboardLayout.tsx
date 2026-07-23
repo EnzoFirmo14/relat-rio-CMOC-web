@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from'react';
 import { useSelector, useDispatch } from'react-redux';
 import type { RootState } from'../store';
-import { toggleSidebar, toggleTheme, logout } from'../store';
+import { toggleSidebar, toggleTheme, logout, toggleMockEnabled } from'../store';
 import { useNavigate, useLocation, Link } from'react-router-dom';
 import { 
  LayoutDashboard, 
@@ -15,7 +15,8 @@ import {
  ChevronLeft, 
  ChevronRight, 
  Wifi, 
- WifiOff
+ WifiOff,
+ Database
 } from'lucide-react';
 
 interface SidebarItemProps {
@@ -55,6 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  const sidebarOpen = useSelector((state: RootState) => state.ui.sidebarOpen);
  const themeMode = useSelector((state: RootState) => state.theme.mode);
  const user = useSelector((state: RootState) => state.auth.user);
+ const mockEnabled = useSelector((state: RootState) => state.ui.mockEnabled);
  
  const [time, setTime] = useState(new Date());
  const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -174,10 +176,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  </div>
 
  <div className="flex items-center gap-4">
+ {/* Toggle Mock Mode */}
+ <button 
+ onClick={() => dispatch(toggleMockEnabled())}
+ className={`p-2 rounded-xl bg-background hover:bg-border transition-all duration-300 border flex items-center gap-1.5 px-3 py-1.5 ${
+ mockEnabled 
+ ?'text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20' 
+ :'text-text-secondary border-border'
+ }`}
+ title={mockEnabled ?'Desativar Modo Simulado (Mostrar Dados Reais)' :'Ativar Modo Simulado (Mostrar Dados Falsos/Mock)'}
+ >
+ <Database size={16} className={mockEnabled ?'animate-pulse' :''} />
+ <span className="text-xs font-bold hidden sm:inline">
+ {mockEnabled ?'Modo Simulado' :'Modo Real'}
+ </span>
+ </button>
+
  {/* Toggle Theme */}
  <button 
  onClick={() => dispatch(toggleTheme())}
- className="p-2 rounded-xl bg-background hover:bg-border text-text-secondary hover:text-primary transition-all duration-300"
+ className="p-2 rounded-xl bg-background hover:bg-border text-text-secondary hover:text-primary transition-all duration-300 border border-border"
  title={themeMode ==='light' ?'Ativar Modo Escuro' :'Ativar Modo Claro'}
  >
  {themeMode ==='light' ? <Moon size={18} /> : <Sun size={18} />}

@@ -99,10 +99,12 @@ const themeSlice = createSlice({
 
 interface UiState {
  sidebarOpen: boolean;
+ mockEnabled: boolean;
 }
 
 const initialUi: UiState = {
- sidebarOpen: true
+ sidebarOpen: true,
+ mockEnabled: localStorage.getItem('cmoc_mock_enabled') !== 'false'
 };
 
 const uiSlice = createSlice({
@@ -111,6 +113,10 @@ const uiSlice = createSlice({
  reducers: {
  toggleSidebar: (state) => {
  state.sidebarOpen = !state.sidebarOpen;
+ },
+ toggleMockEnabled: (state) => {
+ state.mockEnabled = !state.mockEnabled;
+ localStorage.setItem('cmoc_mock_enabled', String(state.mockEnabled));
  }
  }
 });
@@ -121,11 +127,11 @@ export const store = configureStore({
  theme: themeSlice.reducer,
  ui: uiSlice.reducer
  }
-});
-
-export const { login, logout, setFirebaseUser, setLoading } = authSlice.actions;
-export const { toggleTheme, initTheme } = themeSlice.actions;
-export const { toggleSidebar } = uiSlice.actions;
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+ });
+ 
+ export const { login, logout, setFirebaseUser, setLoading } = authSlice.actions;
+ export const { toggleTheme, initTheme } = themeSlice.actions;
+ export const { toggleSidebar, toggleMockEnabled } = uiSlice.actions;
+ 
+ export type RootState = ReturnType<typeof store.getState>;
+ export type AppDispatch = typeof store.dispatch;
