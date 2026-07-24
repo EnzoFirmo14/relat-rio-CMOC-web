@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cmoc-mining-v1';
+const CACHE_NAME = 'cmoc-brasil-v1';
 const OFFLINE_URLS = [
   '/',
   '/index.html',

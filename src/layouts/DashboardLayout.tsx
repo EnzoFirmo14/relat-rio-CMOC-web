@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
  />
  {sidebarOpen && (
  <span className="font-extrabold text-text-primary tracking-wide text-base whitespace-nowrap font-outfit">
- CMOC MINING
+ CMOC BRASIL
  </span>
  )}
  </div>

@@ -6,8 +6,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { 
- Search, Plus, Eye, Edit2, Trash2, MapPin, ClipboardList,
- Download, X, FileText
+  Search, Plus, Eye, Edit2, Trash2, MapPin, ClipboardList,
+  Download, X, FileText, Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from'framer-motion';
 import * as XLSX from'xlsx';
@@ -29,6 +29,7 @@ export default function ReportsList() {
  const [currentPage, setCurrentPage] = useState(1);
  const [sortField, setSortField] = useState<keyof NormalizedReport>('createdAt');
  const [sortOrder, setSortOrder] = useState<'asc' |'desc'>('desc');
+ const [showFilters, setShowFilters] = useState(false);
  const itemsPerPage = 8;
 
  // Confirm delete modal state
@@ -216,94 +217,117 @@ export default function ReportsList() {
  </div>
  <div className="flex items-center gap-2">
  <button 
- onClick={handleExportExcel}
- className="flex items-center gap-2 px-4 py-3 bg-surface border border-border text-text-primary font-bold rounded-xl shadow-sm transition-all hover:bg-background"
- >
- <Download size={18} />
- <span className="hidden sm:inline">Exportar Excel</span>
- </button>
- <Link 
- to="/reports/new"
- className="flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary-hover text-[var(--primary-foreground)] font-bold rounded-xl shadow-lg transition-all duration-200 active:scale-95"
- >
- <Plus size={18} />
- <span className="hidden sm:inline">Adicionar</span> Relatório
- </Link>
+  onClick={() => setShowFilters(prev => !prev)}
+  className={`flex items-center gap-2 px-4 py-3 border text-sm font-bold rounded-xl shadow-sm transition-all cursor-pointer ${
+  showFilters 
+  ?'bg-primary text-[var(--primary-foreground)] border-primary' 
+  :'bg-surface border-border text-text-primary hover:bg-background'
+  }`}
+  title="Filtrar Relatórios"
+  >
+  <Filter size={18} />
+  <span className="hidden sm:inline">Filtrar</span>
+  </button>
+  
+  <button 
+  onClick={handleExportExcel}
+  className="flex items-center gap-2 px-4 py-3 bg-surface border border-border text-text-primary font-bold rounded-xl shadow-sm transition-all hover:bg-background cursor-pointer"
+  >
+  <Download size={18} />
+  <span className="hidden sm:inline">Exportar Excel</span>
+  </button>
+  <Link 
+  to="/reports/new"
+  className="flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary-hover text-[var(--primary-foreground)] font-bold rounded-xl shadow-lg transition-all duration-200 active:scale-95"
+  >
+  <Plus size={18} />
+  <span className="hidden sm:inline">Adicionar</span> Relatório
+  </Link>
  </div>
  </div>
 
- {/* Advanced Filter Bar */}
- <div className="glass rounded-2xl p-5 shadow-md space-y-4">
- <div className="flex flex-col md:flex-row gap-4">
- {/* Smart Search */}
- <div className="relative flex-1">
- <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
- <Search size={18} />
- </div>
- <input 
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- placeholder="Buscar por OS, Supervisor, Executante, Equipamento, Área, etc..."
- className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm text-text-primary"
- />
- </div>
- 
- {/* Period quick filter */}
- <div className="flex gap-2 shrink-0 overflow-x-auto pb-1 no-scrollbar">
- {[
- { id:'all', label:'Todos' },
- { id:'today', label:'Hoje' },
- { id:'yesterday', label:'Ontem' },
- { id:'7', label:'7 Dias' },
- { id:'30', label:'30 Dias' }
- ].map(p => (
- <button
- key={p.id}
- onClick={() => setSelectedPeriod(p.id)}
- className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
- selectedPeriod === p.id 
- ?'bg-primary text-[var(--primary-foreground)]' 
- :'bg-surface-hover dark:bg-surface text-text-tertiary hover:bg-surface-hover'
- }`}
- >
- {p.label}
- </button>
- ))}
- {(searchTerm || selectedShift || selectedArea || selectedPeriod !=='all') && (
- <button
- onClick={handleClearFilters}
- className="px-4 py-2 text-xs font-bold rounded-xl transition-all bg-red-100 text-error hover:bg-red-200 dark:bg-red-950/20"
- title="Limpar Filtros"
- >
- <X size={14} className="inline-block mr-1"/> Limpar
- </button>
- )}
- </div>
- </div>
+  {/* Advanced Filter Bar (Collapsible) */}
+  <AnimatePresence>
+    {showFilters && (
+      <motion.div 
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
+        className="glass rounded-2xl p-5 shadow-md space-y-4 overflow-hidden"
+      >
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Smart Search */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
+              <Search size={18} />
+            </div>
+            <input 
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por OS, Supervisor, Executante, Equipamento, Área, etc..."
+              className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm text-text-primary"
+            />
+          </div>
+          
+          {/* Period quick filter */}
+          <div className="flex gap-2 shrink-0 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { id: 'all', label: 'Todos' },
+              { id: 'today', label: 'Hoje' },
+              { id: 'yesterday', label: 'Ontem' },
+              { id: '7', label: '7 Dias' },
+              { id: '30', label: '30 Dias' }
+            ].map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPeriod(p.id)}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+                  selectedPeriod === p.id 
+                    ? 'bg-primary text-[var(--primary-foreground)]' 
+                    : 'bg-surface-hover dark:bg-surface text-text-tertiary hover:bg-surface-hover'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+            {(searchTerm || selectedShift || selectedArea || selectedPeriod !== 'all') && (
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-2 text-xs font-bold rounded-xl transition-all bg-red-100 text-error hover:bg-red-200 dark:bg-red-950/20"
+                title="Limpar Filtros"
+              >
+                <X size={14} className="inline-block mr-1"/> Limpar
+              </button>
+            )}
+          </div>
+        </div>
 
- {/* Dropdowns filters */}
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-border/80">
- <select 
- value={selectedShift} 
- onChange={(e) => setSelectedShift(e.target.value)}
- className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
- >
- <option value="">Todos os Turnos</option>
- <option value="A">Turno A</option>
- <option value="B">Turno B</option>
- <option value="C">Turno C</option>
- </select>
+        {/* Dropdowns filters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-border/80">
+          <select 
+            value={selectedShift} 
+            onChange={(e) => setSelectedShift(e.target.value)}
+            className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
+          >
+            <option value="">Todos os Turnos</option>
+            <option value="A">Turno A</option>
+            <option value="B">Turno B</option>
+            <option value="C">Turno C</option>
+          </select>
 
- <input 
- type="text"
- value={selectedArea}
- onChange={(e) => setSelectedArea(e.target.value)}
- placeholder="Filtrar por Área / Mina..."
- className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
- />
- </div>
- </div>
+          <input 
+            type="text"
+            value={selectedArea}
+            onChange={(e) => setSelectedArea(e.target.value)}
+            placeholder="Filtrar por Área / Mina..."
+            className="px-3 py-2 text-xs font-semibold bg-background dark:bg-background/40 border border-border dark:border-border rounded-xl focus:outline-none "
+          />
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
  {/* Table Section */}
  <div className="glass rounded-2xl shadow-md overflow-hidden">
