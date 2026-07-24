@@ -8,18 +8,23 @@ import type { RootState } from'../store';
 import { zodResolver } from'@hookform/resolvers/zod';
 import * as zod from'zod';
 import { motion } from'framer-motion';
-import { User, Lock, Briefcase, KeyRound, Sun, Moon } from'lucide-react';
+import { User, Lock, Briefcase, KeyRound, Sun, Moon, Mail, Eye, EyeOff } from'lucide-react';
 import { registerWithEmail, logoutUser } from'../services/authService';
 
 const registerSchema = zod.object({
- name: zod.string().min(3,'O nome deve ter pelo menos 3 caracteres'),
- role: zod.string().min(2,'O cargo deve ter pelo menos 2 caracteres'),
- registration: zod.string().min(3,'A matrícula deve ter pelo menos 3 caracteres'),
- username: zod.string().min(3,'O usuário deve ter pelo menos 3 caracteres'),
- password: zod.string().min(4,'A senha deve ter pelo menos 4 caracteres'),
- confirmPassword: zod.string().min(4,'A confirmação de senha deve ter pelo menos 4 caracteres')
+ name: zod.string().min(1, 'Informe seu nome completo.'),
+ role: zod.enum(['Supervisor', 'Líder da Elétrica Turno', 'Engenheiro', 'Coordenador', 'Gerente', 'Analista', 'Aprovisionado'], { errorMap: () => ({ message: 'Selecione um cargo.' }) }),
+ registration: zod.string().min(1, 'Informe a matrícula.'),
+ username: zod.string().email('Informe um e-mail válido.'),
+ password: zod.string()
+ .min(8, 'A senha deve atender aos requisitos mínimos.')
+ .regex(/[a-z]/, 'A senha deve atender aos requisitos mínimos.')
+ .regex(/[A-Z]/, 'A senha deve atender aos requisitos mínimos.')
+ .regex(/[0-9]/, 'A senha deve atender aos requisitos mínimos.')
+ .regex(/[^a-zA-Z0-9]/, 'A senha deve atender aos requisitos mínimos.'),
+ confirmPassword: zod.string().min(1, 'As senhas não coincidem.')
 }).refine((data) => data.password === data.confirmPassword, {
- message:'As senhas não coincidem',
+ message: 'As senhas não coincidem.',
  path: ['confirmPassword']
 });
 
@@ -31,9 +36,12 @@ export default function Register() {
  const themeMode = useSelector((state: RootState) => state.theme.mode);
  const [loading, setLoading] = useState(false);
  const [errorMsg, setErrorMsg] = useState('');
+ const [showPassword, setShowPassword] = useState(false);
+ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
- const { register, handleSubmit, formState: { errors } } = useForm<RegisterFields>({
- resolver: zodResolver(registerSchema)
+ const { register, handleSubmit, formState: { errors, isValid } } = useForm<RegisterFields>({
+ resolver: zodResolver(registerSchema),
+ mode: 'all'
  });
 
  const onSubmit = async (data: RegisterFields) => {
@@ -170,8 +178,8 @@ export default function Register() {
  <input 
  type="text"
  {...register('name')}
- placeholder="Nome do Engenheiro / Supervisor"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
+ placeholder="ex: João Silva"
+ className={`w-full pl-9 pr-4 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm ${errors.name ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
  </div>
  {errors.name && (
@@ -189,12 +197,19 @@ export default function Register() {
  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary/40 ">
  <Briefcase size={16} />
  </div>
- <input 
- type="text"
+ <select 
  {...register('role')}
- placeholder="ex: Supervisor"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
- />
+ className={`w-full pl-9 pr-4 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm appearance-none ${errors.role ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
+ >
+ <option value="" disabled hidden>Selecione um cargo</option>
+ <option value="Supervisor">Supervisor</option>
+ <option value="Líder da Elétrica Turno">Líder da Elétrica Turno</option>
+ <option value="Engenheiro">Engenheiro</option>
+ <option value="Coordenador">Coordenador</option>
+ <option value="Gerente">Gerente</option>
+ <option value="Analista">Analista</option>
+ <option value="Aprovisionado">Aprovisionado</option>
+ </select>
  </div>
  {errors.role && (
  <p className="text-[10px] text-error font-medium">{errors.role.message}</p>
@@ -213,7 +228,7 @@ export default function Register() {
  type="text"
  {...register('registration')}
  placeholder="Matrícula CMOC"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
+ className={`w-full pl-9 pr-4 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm ${errors.registration ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
  </div>
  {errors.registration && (
@@ -232,10 +247,10 @@ export default function Register() {
  <User size={16} />
  </div>
  <input 
- type="text"
+ type="email"
  {...register('username')}
- placeholder="ex: pedro.santos"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
+ placeholder="ex: usuario@dominio.com"
+ className={`w-full pl-9 pr-4 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm ${errors.username ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
  </div>
  {errors.username && (
@@ -254,11 +269,18 @@ export default function Register() {
  <Lock size={16} />
  </div>
  <input 
- type="password"
+ type={showPassword ? 'text' : 'password'}
  {...register('password')}
  placeholder="••••"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
+ className={`w-full pl-9 pr-10 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm ${errors.password ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-primary transition-colors focus:outline-none"
+ >
+ {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+ </button>
  </div>
  {errors.password && (
  <p className="text-[10px] text-error font-medium">{errors.password.message}</p>
@@ -274,11 +296,18 @@ export default function Register() {
  <Lock size={16} />
  </div>
  <input 
- type="password"
+ type={showConfirmPassword ? 'text' : 'password'}
  {...register('confirmPassword')}
  placeholder="••••"
- className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder text-sm"
+ className={`w-full pl-9 pr-10 py-2 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder text-sm ${errors.confirmPassword ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
+ <button
+ type="button"
+ onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+ className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-primary transition-colors focus:outline-none"
+ >
+ {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+ </button>
  </div>
  {errors.confirmPassword && (
  <p className="text-[10px] text-error font-medium">{errors.confirmPassword.message}</p>
@@ -289,7 +318,7 @@ export default function Register() {
  {/* Criar conta botão */}
  <button 
  type="submit"
- disabled={loading}
+ disabled={loading || !isValid}
  className="w-full py-2.5 bg-primary hover:bg-primary-hover text-[var(--primary-foreground)] font-bold rounded-xl shadow-lg hover:shadow-primary/10 transition-all duration-200 disabled:opacity-50 mt-2 text-sm cursor-pointer"
  >
  {loading ?'Cadastrando...' :'Criar Conta'}

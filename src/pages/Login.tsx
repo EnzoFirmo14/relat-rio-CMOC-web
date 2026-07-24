@@ -6,13 +6,13 @@ import { useForm } from'react-hook-form';
 import { zodResolver } from'@hookform/resolvers/zod';
 import * as zod from'zod';
 import { motion } from'framer-motion';
-import { Lock, User, Sun, Moon } from'lucide-react';
+import { Lock, User, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { Link } from'react-router-dom';
 import { loginWithEmail } from'../services/authService';
 
 const loginSchema = zod.object({
- username: zod.string().min(3, { message:'O usuário deve ter pelo menos 3 caracteres' }),
- password: zod.string().min(4, { message:'A senha deve ter pelo menos 4 caracteres' }),
+ username: zod.string().min(1, 'Informe seu usuário ou e-mail.'),
+ password: zod.string().min(1, 'Informe sua senha.'),
  remember: zod.boolean().optional()
 });
 
@@ -23,9 +23,11 @@ export default function Login() {
  const themeMode = useSelector((state: RootState) => state.theme.mode);
  const [loading, setLoading] = useState(false);
  const [errorMsg, setErrorMsg] = useState('');
+ const [showPassword, setShowPassword] = useState(false);
  
- const { register, handleSubmit, formState: { errors } } = useForm<LoginFields>({
- resolver: zodResolver(loginSchema)
+ const { register, handleSubmit, formState: { errors, isValid } } = useForm<LoginFields>({
+ resolver: zodResolver(loginSchema),
+ mode: 'all'
  });
 
  const onSubmit = async (data: LoginFields) => {
@@ -161,8 +163,8 @@ export default function Login() {
  <input 
  type="text"
  {...register('username')}
- placeholder="ex: pedro.santos"
- className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder"
+ placeholder="ex: usuario@dominio.com"
+ className={`w-full pl-10 pr-4 py-2.5 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder ${errors.username ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
  </div>
  {errors.username && (
@@ -180,11 +182,18 @@ export default function Login() {
  <Lock size={18} />
  </div>
  <input 
- type="password"
+ type={showPassword ? 'text' : 'password'}
  {...register('password')}
  placeholder="••••••••"
- className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:placeholder-text-placeholder"
+ className={`w-full pl-10 pr-10 py-2.5 bg-background rounded-xl focus:outline-none focus:ring-2 transition-all dark:placeholder-text-placeholder ${errors.password ? 'border border-error focus:ring-error focus:border-error' : 'border border-border focus:ring-primary focus:border-transparent'}`}
  />
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-primary transition-colors focus:outline-none"
+ >
+ {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+ </button>
  </div>
  {errors.password && (
  <p className="text-xs text-error font-medium">{errors.password.message}</p>
@@ -213,7 +222,7 @@ export default function Login() {
  {/* Botão Entrar */}
  <button 
  type="submit"
- disabled={loading}
+ disabled={loading || !isValid}
  className="w-full py-3 bg-primary hover:bg-primary-hover text-[var(--primary-foreground)] font-bold rounded-xl shadow-lg shadow-primary/10 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 mt-2 cursor-pointer"
  >
  {loading ?'Entrando...' :'Entrar'}
